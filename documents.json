@@ -1,11 +1,53 @@
 [
   {
-    "name": "example",
-    "title": "TODO(author): the first document this industry must produce",
-    "for_each": "select gen_random_uuid() as id, 'Example' as name",
+    "name": "invoice",
+    "title": "Tax invoice",
+    "for_each": "select id,number from invoices where status='issued'",
+    "file": "number",
+    "sections": [
+      { "title": "Invoice", "sql": "select v.number,v.family,v.issued_on,v.due_on,v.currency,round(v.amount_cents/100.0,2) as total,round(v.paid_cents/100.0,2) as paid,round(v.balance_cents/100.0,2) as balance_due from v_invoices v where v.id=$1" },
+      { "title": "Lessons and packages", "sql": "select description,round(amount_cents/100.0,2) as amount from invoice_lines where invoice_id=$1 order by description" }
+    ]
+  },
+  {
+    "name": "family-statement",
+    "title": "Family statement",
+    "for_each": "select distinct f.id,f.name from families f join invoices i on i.family_id=f.id",
     "file": "name",
     "sections": [
-      { "title": "Details", "sql": "select 'replace me' as item, $1::text as record_id" }
+      { "title": "Invoices", "sql": "select number,issued_on,due_on,currency,round(amount_cents/100.0,2) as amount,round(paid_cents/100.0,2) as paid,round(balance_cents/100.0,2) as balance from v_invoices where family_id=$1 order by issued_on" },
+      { "title": "Payments received", "sql": "select p.paid_on,i.number,round(p.amount_cents/100.0,2) as amount,p.method from payments p left join invoices i on i.id=p.invoice_id where p.family_id=$1 order by p.paid_on" },
+      { "title": "Prepaid hours", "sql": "select student,name,round(minutes_left/60.0,1) as hours_left,expires_on from v_package_balance where family_id=$1" }
+    ]
+  },
+  {
+    "name": "progress-report",
+    "title": "Term progress report",
+    "for_each": "select s.id,s.name from students s where s.status='active' and exists (select 1 from lesson_students ls where ls.student_id=s.id and ls.attendance is not null)",
+    "file": "name",
+    "sections": [
+      { "title": "Student", "sql": "select s.name,s.school,s.year_level,s.goals from students s where s.id=$1" },
+      { "title": "Attendance this term", "sql": "select service,teacher,count(*) filter (where attendance in ('present','late')) as attended,count(*) filter (where attendance like 'absent%') as missed from v_roster where student_id=$1 and on_date>=current_date-70 and attendance is not null group by service,teacher" },
+      { "title": "Teacher notes", "sql": "select created_at::date as date,body as note from notes where student_id=$1 and kind='progress' order by created_at" }
+    ]
+  },
+  {
+    "name": "timesheet",
+    "title": "Teacher timesheet, last 14 days",
+    "for_each": "select id,name from teachers where status='active'",
+    "file": "name",
+    "sections": [
+      { "title": "Lessons taught", "note": "Each lesson counts once, however many students were in it. Unmarked lessons are not on the sheet.", "sql": "select l.starts_at::date as date,to_char(l.starts_at,'HH24:MI') as start,l.minutes,s.name as service,lo.name as location from lessons l join services s on s.id=l.service_id join locations lo on lo.id=l.location_id where l.teacher_id=$1 and l.status='completed' and l.starts_at>=current_date-13 and l.starts_at<current_date+1 order by l.starts_at" },
+      { "title": "Total", "sql": "select round(coalesce(sum(l.minutes),0)/60.0,2) as hours,round(t.pay_rate_cents/100.0,2) as rate,round(coalesce(sum(l.minutes),0)*t.pay_rate_cents/6000.0,2) as pay from teachers t left join lessons l on l.teacher_id=t.id and l.status='completed' and l.starts_at>=current_date-13 and l.starts_at<current_date+1 where t.id=$1 group by t.pay_rate_cents" }
+    ]
+  },
+  {
+    "name": "safety-register",
+    "title": "Child safety check register",
+    "for_each": "select id,name from locations where jurisdiction is not null",
+    "file": "name",
+    "sections": [
+      { "title": "Teachers working here and their checks", "sql": "select distinct t.name as teacher,c.kind,c.number,c.issued_on,c.expires_on,c.verified_on from lessons l join teachers t on t.id=l.teacher_id join locations lo on lo.id=l.location_id left join safety_checks c on c.teacher_id=t.id and c.jurisdiction=lo.jurisdiction where l.location_id=$1 and l.starts_at>=current_date-90 order by t.name" }
     ]
   }
 ]

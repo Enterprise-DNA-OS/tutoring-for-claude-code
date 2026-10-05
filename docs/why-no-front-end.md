@@ -13,9 +13,11 @@ That layer used to be the whole product, because talking to a database was hard.
 
 ## What you give up
 
-- **A visual board.** Stages are a table you ask about, not cards you drag.
-- **A phone app.** It runs where Claude Code runs.
-- **A vendor help desk.** This is open source. Enterprise DNA supports the installed version for businesses that want someone to call.
+- **A parent portal.** Teachworks gives families a login to see lessons, invoices and pay by card. Here families get invoices, statements and progress reports as documents, and pay the way they already do.
+- **Teacher logins on a phone.** Teachers mark attendance by telling Claude Code, or the office marks it from the day's schedule. There is no app.
+- **Online payments and reminders sent for you.** Reminders are drafted to `drafts/` and a person sends them. Card payments come in through whatever you use today and are recorded with `/pay`.
+- **A drag-and-drop calendar.** The schedule is a table you ask about, not a grid you drag.
+- **A vendor help desk.** This is open source. Enterprise DNA supports the installed version for businesses that want someone to call, and builds a parent portal or teacher screen into your version if you need one.
 
 ## Who this fits
 

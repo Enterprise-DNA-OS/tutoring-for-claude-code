@@ -1,14 +1,32 @@
 [
   {
     "name": "week",
-    "title": "This week",
-    "subtitle": "Tutoring for Claude Code: what needs attention, rendered by npm run view",
+    "title": "Tutoring week",
+    "subtitle": "Read-only snapshot. Run npm run view again after changes.",
     "sections": [
-      {
-        "title": "Needs attention",
-        "note": "TODO(author): point this at the industry's attention view (overdue, stuck, quiet).",
-        "sql": "select 'replace me' as item, 'TODO(author)' as why"
-      }
+      { "title": "Lessons this week", "sql": "select to_char(l.starts_at,'Dy DD Mon HH24:MI') as starts,sv.name as service,t.name as teacher,lo.name as location,(select string_agg(s.name,', ' order by s.name) from lesson_students ls join students s on s.id=ls.student_id where ls.lesson_id=l.id) as students from lessons l join services sv on sv.id=l.service_id join teachers t on t.id=l.teacher_id join locations lo on lo.id=l.location_id where l.status='scheduled' and l.starts_at>=current_date and l.starts_at<current_date+7 order by l.starts_at" },
+      { "title": "Attendance not marked", "note": "Billing, packages, make-ups and teacher pay all wait on these.", "sql": "select on_date,to_char(starts_at,'HH24:MI') as at,teacher,service,student from v_roster where attendance is null and lesson_status<>'cancelled' and on_date<current_date order by on_date,teacher" },
+      { "title": "Students drifting", "sql": "select student,family,last_attended,coalesce(next_booked::text,'nothing booked') as next_booked,absences_28d as absences_last_4_weeks from v_student_activity where status='active' and ((next_booked is null and last_attended is not null) or absences_28d>=2) order by last_attended" },
+      { "title": "Make-up credits expiring in 14 days", "sql": "select student,family,expires_on,days_left from v_makeups where state='available' and days_left<=14 order by expires_on" }
+    ]
+  },
+  {
+    "name": "money",
+    "title": "Money in",
+    "subtitle": "Invoices, packages and what has not been billed yet.",
+    "sections": [
+      { "title": "Overdue", "sql": "select family,contact_name,currency,round(overdue_cents/100.0,2) as overdue,oldest_overdue from v_family_balance where overdue_cents>0 order by overdue_cents desc" },
+      { "title": "Taught but not billed", "sql": "select family,count(*) as lessons,currency,round(sum(charge_cents)/100.0,2) as amount,min(on_date) as oldest from v_unbilled group by family,currency order by oldest" },
+      { "title": "Packages running low", "note": "Minutes left against minutes already booked.", "sql": "select family,student,name,minutes_left,minutes_booked,expires_on from v_package_balance where minutes_left<=60 or minutes_left<minutes_booked order by minutes_left" }
+    ]
+  },
+  {
+    "name": "safety",
+    "title": "Child safety checks",
+    "subtitle": "Every teacher's checks and every gap found. Not a legal opinion.",
+    "sections": [
+      { "title": "Findings", "sql": "select rule,subject as teacher,finding,source from v_compliance where rule not like 'POLICY%' order by rule,subject" },
+      { "title": "Checks on file", "sql": "select t.name as teacher,c.jurisdiction,c.kind,c.number,c.issued_on,c.expires_on,c.verified_on from safety_checks c join teachers t on t.id=c.teacher_id order by t.name" }
     ]
   }
 ]

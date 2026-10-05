@@ -1,0 +1,6 @@
+Date,Start Time,End Time,Duration in Minutes,Teacher,Service,Location,Student,Customer,Cost,Attendance
+"Aug 4, 2026",4:00 PM,5:00 PM,60,Grace Liu,Primary Maths 1:1,Chatswood,Isaac Fraser,Helen Fraser,70.00,Attended
+"Aug 4, 2026",5:00 PM,5:30 PM,30,Grace Liu,Piano,Chatswood,Amelia Fraser,Helen Fraser,45.00,No Show
+"Aug 11, 2026",4:00 PM,5:00 PM,60,Grace Liu,Primary Maths 1:1,Chatswood,Isaac Fraser,Helen Fraser,70.00,Cancelled
+11/08/2026,16:30,17:30,,Ben Carter,English Writing Group,Chatswood,Layla Haddad,Omar Haddad,45.00,Attended
+11/08/2026,16:30,17:30,,Ben Carter,English Writing Group,Chatswood,Tom Becker,,45.00,Late
